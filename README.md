@@ -41,13 +41,11 @@ AI is the "brain" of CyberShield AI. It is integrated into every core module:
 ![Dashboard Overview](https://drive.google.com/file/d/1DFd502lPmSoZB9CeekELbPm62K3u5SLz/view?usp=drivesdk)
 *The main dashboard showing real-time security stats and recent activity.*
 
-### Screenshot2
-![AI Analysis](https://picsum.photos/seed/cyber-analysis/1200/800)
-*A detailed AI-generated risk assessment for a suspicious phishing email.*
+
 
 ## Demo Video
 Watch our 3-minute walkthrough to see CyberShield AI in action:
-[Watch Demo]([https://drive.google.com/drive/folders/your-shareable-link](https://drive.google.com/file/d/1ZQ09L1XLXMvUrtrfYHHgg1qM4IxKdGIs/view?usp=drivesdk))
+[Watch Demo](https://drive.google.com/file/d/1ZQ09L1XLXMvUrtrfYHHgg1qM4IxKdGIs/view?usp=drivesdk)
 
 ## Installation Steps
 
