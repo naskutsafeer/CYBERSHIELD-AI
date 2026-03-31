@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Theme Toggle Demo</title>
+    <style>
+        /* 1. Define Theme Variables */
+        :root {
+            --bg-color: #f8fafc;
+            --text-color: #0f172a;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --accent-color: #06b6d4;
+            --transition-speed: 0.3s;
+        }
+
+        /* 2. Dark Mode Overrides */
+        [data-theme="dark"] {
+            --bg-color: #020617;
+            --text-color: #f1f5f9;
+            --card-bg: #0f172a;
+            --border-color: #1e293b;
+        }
+
+        /* 3. Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 4. Layout Components */
+        .container {
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            padding: 40px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+            letter-spacing: -0.025em;
+        }
+
+        p {
+            line-height: 1.6;
+            color: #64748b;
+            margin-bottom: 32px;
+        }
+
+        [data-theme="dark"] p {
+            color: #94a3b8;
+        }
+
+        /* 5. The Toggle Button */
+        .theme-toggle {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.15);
+        }
+
+        .theme-toggle:active {
+            transform: translateY(0);
+        }
+
+        /* 6. Icon Animation */
+        .icon-container {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            overflow: hidden;
+        }
+
+        .icon-sun, .icon-moon {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        }
+
+        /* Hide/Show logic based on theme */
+        [data-theme="dark"] .icon-sun { transform: translateY(30px); opacity: 0; }
+        [data-theme="dark"] .icon-moon { transform: translateY(0); opacity: 1; }
+        
+        [data-theme="light"] .icon-sun { transform: translateY(0); opacity: 1; }
+        [data-theme="light"] .icon-moon { transform: translateY(-30px); opacity: 0; }
+
+        svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <div class="container">
+        <h1>Theme Switcher</h1>
+        <p>This demo uses CSS variables, LocalStorage, and system preference detection to provide a seamless light and dark mode experience.</p>
+        
+        <button class="theme-toggle" id="theme-btn">
+            <div class="icon-container">
+                <!-- Sun Icon -->
+                <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <!-- Moon Icon -->
+                <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </div>
+            <span id="theme-text">Switch to Dark Mode</span>
+        </button>
+    </div>
+
+    <script>
+        const themeBtn = document.getElementById('theme-btn');
+        const themeText = document.getElementById('theme-text');
+        const body = document.body;
+
+        // 1. Function to set theme
+        function setTheme(theme) {
+            body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme-preference', theme);
+            themeText.innerText = theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode';
+        }
+
+        // 2. Initialize theme
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme-preference');
+            
+            if (savedTheme) {
+                setTheme(savedTheme);
+            } else {
+                // Check system preference
+                const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                setTheme(systemPrefersDark ? 'dark' : 'light');
+            }
+        }
+
+        // 3. Toggle event listener
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        });
+
+        // 4. Listen for system preference changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (!localStorage.getItem('theme-preference')) {
+                setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+
+        // Start
+        initTheme();
+    </script>
+</body>
+</html>

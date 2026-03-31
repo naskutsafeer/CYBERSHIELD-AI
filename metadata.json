@@ -1,0 +1,8 @@
+{
+  "name": "CyberShield AI",
+  "description": "AI-powered cybersecurity suite for detecting phishing, suspicious URLs, log anomalies, code vulnerabilities, and deepfakes.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

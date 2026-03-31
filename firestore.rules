@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+          (request.auth.token.email == "naskutsafeer321@gmail.com" && request.auth.token.email_verified == true)
+        );
+    }
+
+    function isRecent(time) {
+      return time > request.time - duration.value(5, 'm') &&
+             time < request.time + duration.value(5, 'm');
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'createdAt']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role in ['admin', 'user'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidThreatLog(data) {
+      return data.keys().hasAll(['userId', 'type', 'threat', 'risk_level', 'confidence', 'timestamp']) &&
+             data.userId is string &&
+             data.type in ['phishing', 'url', 'logs', 'code', 'deepfake'] &&
+             data.threat is string &&
+             data.risk_level in ['Low', 'Medium', 'High', 'Critical'] &&
+             data.confidence is number &&
+             data.timestamp is timestamp;
+    }
+
+    function isValidNotification(data) {
+      return data.keys().hasAll(['userId', 'title', 'message', 'type', 'read', 'timestamp']) &&
+             data.userId is string &&
+             data.title is string &&
+             data.message is string &&
+             data.type in ['info', 'warning', 'error', 'success'] &&
+             data.read is bool &&
+             data.timestamp is timestamp;
+    }
+
+    function isValidFeedback(data) {
+      return data.keys().hasAll(['userId', 'userEmail', 'type', 'subject', 'message', 'timestamp', 'status']) &&
+             data.userId is string &&
+             data.userEmail is string &&
+             data.type in ['bug', 'feature', 'other'] &&
+             data.subject is string &&
+             data.message is string &&
+             data.timestamp is timestamp &&
+             data.status in ['new', 'in-progress', 'resolved'];
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+    match /threat_history/{logId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId) && isValidThreatLog(request.resource.data) && isRecent(request.resource.data.timestamp);
+      allow update, delete: if false; // Logs should be immutable
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isValidNotification(request.resource.data) && isRecent(request.resource.data.timestamp);
+      allow update: if isOwner(resource.data.userId) && isValidNotification(request.resource.data) && 
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    match /feedback/{feedbackId} {
+      allow read: if isAdmin() || isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId) && 
+                    isValidFeedback(request.resource.data) && 
+                    isRecent(request.resource.data.timestamp) &&
+                    request.resource.data.status == 'new';
+      allow update: if isAdmin() && isValidFeedback(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if ((isOwner(userId) && request.resource.data.role == 'user') || isAdmin()) && 
+                    isValidUser(request.resource.data) && 
+                    isRecent(request.resource.data.createdAt);
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    ((isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin());
+      allow delete: if isAdmin();
+    }
+  }
+}
